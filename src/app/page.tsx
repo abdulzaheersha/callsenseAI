@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useState, useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeCall } from "./actions";
 
@@ -16,7 +15,7 @@ const initialState = {
 };
 
 export default function Home() {
-  const [state, formAction] = useFormState(analyzeCall, initialState);
+  const [state, formAction] = useActionState(analyzeCall, initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
