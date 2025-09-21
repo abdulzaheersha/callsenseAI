@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useActionState } from "react";
+import { useEffect } from "react";
+import { useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeCall } from "./actions";
 
@@ -15,8 +16,7 @@ const initialState = {
 };
 
 export default function Home() {
-  const [state, formAction] = useActionState(analyzeCall, initialState);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, formAction, isSubmitting] = useActionState(analyzeCall, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -27,7 +27,6 @@ export default function Home() {
         description: state.error,
       });
     }
-    setIsSubmitting(false);
   }, [state, toast]);
 
   const handleReset = () => {
@@ -54,7 +53,7 @@ export default function Home() {
             </div>
           )}
 
-          {showForm && <FileUploadForm action={formAction} setIsSubmitting={setIsSubmitting} />}
+          {showForm && <FileUploadForm action={formAction} />}
 
           {showDashboard && (
             <AnalysisDashboard

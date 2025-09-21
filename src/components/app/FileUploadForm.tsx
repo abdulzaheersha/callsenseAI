@@ -37,25 +37,10 @@ function SubmitButton() {
 
 interface FileUploadFormProps {
     action: (payload: FormData) => void;
-    setIsSubmitting: (isSubmitting: boolean) => void;
 }
 
-export function FileUploadForm({ action, setIsSubmitting }: FileUploadFormProps) {
+export function FileUploadForm({ action }: FileUploadFormProps) {
   const formRef = React.useRef<HTMLFormElement>(null);
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const audioFile = formData.get("audio") as File;
-
-    if (audioFile && audioFile.size > 0) {
-      setIsSubmitting(true);
-      action(formData);
-    } else {
-      // Basic client-side check to prevent submitting empty form
-      alert("Please select an audio file.");
-    }
-  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg animate-in fade-in-50 duration-500">
@@ -66,7 +51,7 @@ export function FileUploadForm({ action, setIsSubmitting }: FileUploadFormProps)
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+        <form ref={formRef} action={action} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="audio" className="text-base">Audio File</Label>
             <Input id="audio" name="audio" type="file" required accept=".mp3,.wav" />
