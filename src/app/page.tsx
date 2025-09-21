@@ -1,69 +1,16 @@
-"use client";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { Dashboard } from "./dashboard/page";
 
-import { useEffect } from "react";
-import { useActionState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { analyzeCall } from "./actions";
+export default async function Home() {
+  const session = await getSession();
 
-import { Header } from "@/components/app/Header";
-import { FileUploadForm } from "@/components/app/FileUploadForm";
-import { AnalysisDashboard } from "@/components/app/AnalysisDashboard";
-import { Loader2 } from "lucide-react";
+  if (!session) {
+    redirect('/login');
+  }
 
-const initialState = {
-  data: null,
-  error: null,
-};
-
-export default function Home() {
-  const [state, formAction, isSubmitting] = useActionState(analyzeCall, initialState);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (state.error) {
-      toast({
-        variant: "destructive",
-        title: "Analysis Failed",
-        description: state.error,
-      });
-    }
-  }, [state, toast]);
-
-  const handleReset = () => {
-    // A full reload is the simplest way to reset all state, including form state.
-    window.location.reload();
-  };
-
-  const showDashboard = state?.data && !isSubmitting;
-  const showForm = !state?.data && !isSubmitting;
-  const showLoading = isSubmitting;
-
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-7xl mx-auto">
-          {showLoading && (
-            <div className="flex flex-col items-center justify-center gap-4 text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <h2 className="text-2xl font-semibold">Analyzing Call...</h2>
-              <p className="text-muted-foreground">
-                This might take a moment. Please don't close this page.
-              </p>
-            </div>
-          )}
-
-          {showForm && <FileUploadForm action={formAction} />}
-
-          {showDashboard && (
-            <AnalysisDashboard
-              key={state.data.fileName}
-              result={state.data}
-              onReset={handleReset}
-            />
-          )}
-        </div>
-      </main>
-    </div>
-  );
+  // If there's a session, the user is authenticated.
+  // We can show the dashboard or redirect to a specific dashboard page.
+  // For now, let's just render the dashboard component.
+  return <Dashboard />;
 }

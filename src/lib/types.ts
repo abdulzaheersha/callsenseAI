@@ -10,3 +10,19 @@ export type AnalysisResult = {
   fileName: string;
   analysisDate: string;
 };
+
+export enum Roles {
+  Agent = 'agent',
+  Manager = 'manager',
+  Admin = 'admin',
+}
+
+export type User = {
+  uid: string;
+  email: string | null;
+  role: Roles;
+};
+
+export type Session = User & {
+  isLoggedIn: true;
+};
