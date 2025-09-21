@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverActions: {
+    bodySizeLimit: '15mb', // Allow larger file uploads
+    serverActions: true, // Already enabled by default in recent Next.js
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '15mb',
+    },
+    serverActionsTimeout: 120, // Increase timeout to 120 seconds
+  },
 };
 
 export default nextConfig;
