@@ -107,10 +107,18 @@ export async function login(prevState: any, formData: FormData) {
     try {
         const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
         const idToken = await userCredential.user.getIdToken();
-        cookies().set('session', idToken, { secure: true, httpOnly: true });
+        
+        await fetch(new URL('/api/login', process.env.NEXT_PUBLIC_URL), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        });
 
     } catch (error: any) {
-        return { error: error.message };
+        if (error.code === 'auth/invalid-credential') {
+            return { error: 'Invalid email or password.' };
+        }
+        return { error: 'Something went wrong. Please try again.' };
     }
     return redirect('/dashboard');
 }
@@ -142,7 +150,12 @@ export async function signup(prevState: any, formData: FormData) {
     // Log the user in after successful signup
     const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
     const idToken = await userCredential.user.getIdToken();
-    cookies().set('session', idToken, { secure: true, httpOnly: true });
+    
+    await fetch(new URL('/api/login', process.env.NEXT_PUBLIC_URL), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+    });
 
   } catch (error: any) {
     if (error.code === 'auth/email-already-exists') {
