@@ -1,6 +1,4 @@
 import { Logo } from "@/components/app/Logo";
-import { Button } from "../ui/button";
-import { logout } from "@/app/actions";
 
 export function Header() {
   return (
@@ -12,9 +10,6 @@ export function Header() {
             CallSense AI
           </h1>
         </div>
-        <form action={logout}>
-          <Button variant="outline" type="submit">Logout</Button>
-        </form>
       </div>
     </header>
   );

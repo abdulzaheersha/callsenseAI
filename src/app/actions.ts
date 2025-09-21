@@ -5,13 +5,6 @@ import { analyzeCallSentiment } from "@/ai/flows/analyze-call-sentiment";
 import { detectComplianceViolations } from "@/ai/flows/detect-compliance-violations";
 import { transcribeCallRecording } from "@/ai/flows/transcribe-call-recordings";
 import type { AnalysisResult } from "@/lib/types";
-import { auth } from 'firebase-admin';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth as clientAuth } from '@/lib/firebase';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { Roles } from "@/lib/types";
-import { initializeAdminApp } from "@/lib/firebase-admin";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/x-wav"];
@@ -91,82 +84,4 @@ export async function analyzeCall(
     const errorMessage = e.message || 'An unexpected error occurred. Please try again.';
     return { data: null, error: `Analysis failed: ${errorMessage}` };
   }
-}
-
-const loginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-});
-
-export async function login(prevState: any, formData: FormData) {
-    const parsed = loginSchema.safeParse(Object.fromEntries(formData));
-    if (!parsed.success) {
-        return { error: 'Invalid email or password.' };
-    }
-    const { email, password } = parsed.data;
-    try {
-        const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
-        const idToken = await userCredential.user.getIdToken();
-        
-        await fetch(new URL('/api/login', process.env.NEXT_PUBLIC_URL), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken }),
-        });
-
-    } catch (error: any) {
-        if (error.code === 'auth/invalid-credential') {
-            return { error: 'Invalid email or password.' };
-        }
-        return { error: 'Something went wrong. Please try again.' };
-    }
-    return redirect('/dashboard');
-}
-
-const signupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  role: z.nativeEnum(Roles),
-});
-
-
-export async function signup(prevState: any, formData: FormData) {
-  const parsed = signupSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    const errorMessages = parsed.error.issues.map((issue) => issue.message).join(" ");
-    return { error: errorMessages };
-  }
-  const { email, password, role } = parsed.data;
-
-  try {
-    await initializeAdminApp();
-    const userRecord = await auth().createUser({
-      email,
-      password,
-    });
-    
-    await auth().setCustomUserClaims(userRecord.uid, { role });
-    
-    // Log the user in after successful signup
-    const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
-    const idToken = await userCredential.user.getIdToken();
-    
-    await fetch(new URL('/api/login', process.env.NEXT_PUBLIC_URL), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-    });
-
-  } catch (error: any) {
-    if (error.code === 'auth/email-already-exists') {
-      return { error: 'An account with this email already exists.' };
-    }
-    return { error: 'Something went wrong. Please try again.' };
-  }
-  return redirect('/dashboard');
-}
-
-export async function logout() {
-  cookies().delete('session');
-  redirect('/login');
 }

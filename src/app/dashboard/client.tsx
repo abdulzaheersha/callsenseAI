@@ -8,14 +8,13 @@ import { Header } from "@/components/app/Header";
 import { FileUploadForm } from "@/components/app/FileUploadForm";
 import { AnalysisDashboard } from "@/components/app/AnalysisDashboard";
 import { Loader2 } from "lucide-react";
-import type { Session } from "@/lib/types";
 
 const initialState = {
   data: null,
   error: null,
 };
 
-export function DashboardClient({ session }: { session: Session }) {
+export function DashboardClient() {
   const [state, formAction, isSubmitting] = useActionState(analyzeCall, initialState);
   const { toast } = useToast();
 
