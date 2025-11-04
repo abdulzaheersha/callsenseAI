@@ -3,21 +3,25 @@
 import {z} from 'zod';
 import type {CallRecord, QAData} from '@/lib/types';
 import {calculateQualityScore} from '@/lib/call-data';
+import * as xlsx from 'xlsx';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_FILE_TYPES = ['text/csv'];
+const ACCEPTED_FILE_TYPES = [
+  'text/csv',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
 
 const qaSchema = z.object({
   file: z
     .any()
-    .refine(file => file && file.size > 0, 'CSV file is required.')
+    .refine(file => file && file.size > 0, 'CSV or XLSX file is required.')
     .refine(
       file => file && file.size <= MAX_FILE_SIZE,
       `Max file size is 5MB.`
     )
     .refine(
       file => file && ACCEPTED_FILE_TYPES.includes(file.type),
-      '.csv files are supported.'
+      '.csv and .xlsx files are supported.'
     ),
 });
 
@@ -66,7 +70,10 @@ function parseCsv(csv: string): Omit<CallRecord, 'qualityScore'>[] {
       resolved: values[columnMapping.resolved] as 'Y' | 'N',
       speedOfAnswer: parseInt(values[columnMapping.speedOfAnswer], 10),
       avgTalkDuration: values[columnMapping.avgTalkDuration],
-      satisfactionRating: parseInt(values[columnMapping.satisfactionRating], 10),
+      satisfactionRating: parseInt(
+        values[columnMapping.satisfactionRating],
+        10
+      ),
     };
   });
 }
@@ -86,11 +93,24 @@ export async function analyzeQaData(
       return {data: null, error: errorMessages};
     }
 
-    const csvText = await file.text();
+    let csvText: string;
+    if (file.type === 'text/csv') {
+      csvText = await file.text();
+    } else {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = xlsx.read(arrayBuffer, {type: 'buffer'});
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      csvText = xlsx.utils.sheet_to_csv(worksheet);
+    }
+
     const records = parseCsv(csvText);
 
     if (records.length === 0) {
-      return {data: null, error: 'CSV file is empty or in an invalid format.'};
+      return {
+        data: null,
+        error: 'File is empty or in an invalid format.',
+      };
     }
 
     const processedData: CallRecord[] = records.map(record => ({
@@ -136,7 +156,7 @@ export async function analyzeQaData(
     console.error('An error occurred during QA analysis:', e);
     return {
       data: null,
-      error: 'Failed to process CSV file. Please check the file format.',
+      error: 'Failed to process file. Please check the file format.',
     };
   }
 }
