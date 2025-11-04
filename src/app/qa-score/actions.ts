@@ -25,55 +25,53 @@ const qaSchema = z.object({
     ),
 });
 
+function getColumnIndex(headers: string[], possibleNames: string[]): number {
+    for (const name of possibleNames) {
+        const index = headers.findIndex(header => header.toLowerCase().replace(/[\s-]/g, '') === name.toLowerCase().replace(/[\s-]/g, ''));
+        if (index !== -1) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+
 function parseCsv(csv: string): Omit<CallRecord, 'qualityScore'>[] {
   const lines = csv.trim().split('\n');
   if (lines.length < 2) return [];
 
   const headers = lines[0].split(',').map(h => h.trim());
-  const callIdIndex = headers.indexOf('Call Id');
 
-  // If the first column is 'Call Id', then we assume the standard CSV format.
-  // Otherwise, we map columns by index.
-  const isStandardFormat = callIdIndex !== -1;
-  const columnMapping: Record<string, number> = isStandardFormat
-    ? {
-        callId: callIdIndex,
-        date: headers.indexOf('Date'),
-        agent: headers.indexOf('Agent'),
-        department: headers.indexOf('Department'),
-        answered: headers.indexOf('Answered'),
-        resolved: headers.indexOf('Resolved'),
-        speedOfAnswer: headers.indexOf('Speed of Answer'),
-        avgTalkDuration: headers.indexOf('AvgTalkDuration'),
-        satisfactionRating: headers.indexOf('Satisfaction-Rating'),
-      }
-    : {
-        callId: 0,
-        date: 1,
-        agent: 2,
-        department: 3,
-        answered: 4,
-        resolved: 5,
-        speedOfAnswer: 6,
-        avgTalkDuration: 7,
-        satisfactionRating: 8,
-      };
+  const columnMapping = {
+    callId: getColumnIndex(headers, ['Call Id', 'callId']),
+    date: getColumnIndex(headers, ['Date']),
+    agent: getColumnIndex(headers, ['Agent']),
+    department: getColumnIndex(headers, ['Department']),
+    answered: getColumnIndex(headers, ['Answered']),
+    resolved: getColumnIndex(headers, ['Resolved']),
+    speedOfAnswer: getColumnIndex(headers, ['Speed of Answer', 'speedOfAnswer']),
+    avgTalkDuration: getColumnIndex(headers, ['AvgTalkDuration', 'avgTalkDuration']),
+    satisfactionRating: getColumnIndex(headers, ['Satisfaction-Rating', 'satisfactionRating']),
+  };
 
   return lines.slice(1).map(line => {
     const values = line.split(',').map(v => v.trim());
+    
+    const safeParseInt = (val: string) => {
+        const num = parseInt(val, 10);
+        return isNaN(num) ? 0 : num;
+    };
+
     return {
-      callId: values[columnMapping.callId],
-      date: values[columnMapping.date],
-      agent: values[columnMapping.agent],
-      department: values[columnMapping.department],
-      answered: values[columnMapping.answered] as 'Y' | 'N',
-      resolved: values[columnMapping.resolved] as 'Y' | 'N',
-      speedOfAnswer: parseInt(values[columnMapping.speedOfAnswer], 10),
-      avgTalkDuration: values[columnMapping.avgTalkDuration],
-      satisfactionRating: parseInt(
-        values[columnMapping.satisfactionRating],
-        10
-      ),
+      callId: values[columnMapping.callId] || '',
+      date: values[columnMapping.date] || '',
+      agent: values[columnMapping.agent] || '',
+      department: values[columnMapping.department] || '',
+      answered: (values[columnMapping.answered] as 'Y' | 'N') || 'N',
+      resolved: (values[columnMapping.resolved] as 'Y' | 'N') || 'N',
+      speedOfAnswer: safeParseInt(values[columnMapping.speedOfAnswer]),
+      avgTalkDuration: values[columnMapping.avgTalkDuration] || '',
+      satisfactionRating: safeParseInt(values[columnMapping.satisfactionRating]),
     };
   });
 }
@@ -122,19 +120,18 @@ export async function analyzeQaData(
     const totalAnswered = processedData.filter(c => c.answered === 'Y').length;
     const totalResolved = processedData.filter(c => c.resolved === 'Y').length;
 
-    const averageSatisfaction =
-      processedData.reduce((acc, curr) => acc + curr.satisfactionRating, 0) /
-      totalCalls;
+    const totalSatisfaction = processedData.reduce((acc, curr) => acc + (curr.satisfactionRating || 0), 0);
+    const averageSatisfaction = totalCalls > 0 ? totalSatisfaction / totalCalls : 0;
+    
+    const totalQualityScore = processedData.reduce((acc, curr) => acc + (curr.qualityScore || 0), 0);
+    const averageQualityScore = totalCalls > 0 ? totalQualityScore / totalCalls : 0;
 
-    const averageQualityScore =
-      processedData.reduce((acc, curr) => acc + curr.qualityScore!, 0) /
-      totalCalls;
 
     const agents = [...new Set(processedData.map(c => c.agent))];
     const agentPerformance = agents.map(agent => {
       const agentCalls = processedData.filter(c => c.agent === agent);
       const avgScore =
-        agentCalls.reduce((acc, curr) => acc + curr.qualityScore!, 0) /
+        agentCalls.reduce((acc, curr) => acc + (curr.qualityScore || 0), 0) /
         agentCalls.length;
       return {agent, score: Math.round(avgScore)};
     });
@@ -156,7 +153,7 @@ export async function analyzeQaData(
     console.error('An error occurred during QA analysis:', e);
     return {
       data: null,
-      error: 'Failed to process file. Please check the file format.',
+      error: 'Failed to process file. Please check the file format and content.',
     };
   }
 }

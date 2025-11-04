@@ -59,7 +59,7 @@ export function QADashboard({ qaData }: QADashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {qaData.averageSatisfaction.toFixed(2)} / 5
+              {(qaData.averageSatisfaction || 0).toFixed(2)} / 5
             </div>
             <p className="text-xs text-muted-foreground">Across all calls</p>
           </CardContent>
@@ -73,7 +73,7 @@ export function QADashboard({ qaData }: QADashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {qaData.averageQualityScore.toFixed(0)}
+              {(qaData.averageQualityScore || 0).toFixed(0)}
             </div>
             <p className="text-xs text-muted-foreground">Based on QA metric</p>
           </CardContent>
