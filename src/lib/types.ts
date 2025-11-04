@@ -24,6 +24,14 @@ export type CallRecord = {
   qualityScore?: number;
 };
 
+export type AgentPerformanceData = {
+  agent: string;
+  score: number;
+  totalCalls: number;
+  avgSatisfaction: number;
+  resolvedCalls: number;
+};
+
 export type QAData = {
   records: CallRecord[];
   totalCalls: number;
@@ -32,5 +40,5 @@ export type QAData = {
   averageSatisfaction: number;
   averageQualityScore: number;
   agentCount: number;
-  agentPerformance: { agent: string; score: number }[];
+  agentPerformance: AgentPerformanceData[];
 };

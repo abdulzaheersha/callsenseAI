@@ -130,11 +130,22 @@ export async function analyzeQaData(
     const agents = [...new Set(processedData.map(c => c.agent))];
     const agentPerformance = agents.map(agent => {
       const agentCalls = processedData.filter(c => c.agent === agent);
+      const totalAgentCalls = agentCalls.length;
       const avgScore =
         agentCalls.reduce((acc, curr) => acc + (curr.qualityScore || 0), 0) /
-        agentCalls.length;
-      return {agent, score: Math.round(avgScore)};
-    });
+        totalAgentCalls;
+      const avgSatisfaction =
+        agentCalls.reduce((acc, curr) => acc + (curr.satisfactionRating || 0), 0) /
+        totalAgentCalls;
+      const resolvedCalls = agentCalls.filter(c => c.resolved === 'Y').length;
+      return {
+          agent, 
+          score: Math.round(avgScore),
+          totalCalls: totalAgentCalls,
+          avgSatisfaction: parseFloat(avgSatisfaction.toFixed(2)),
+          resolvedCalls
+        };
+    }).sort((a,b) => b.score - a.score);
 
     return {
       data: {

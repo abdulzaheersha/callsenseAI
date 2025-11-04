@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AgentPerformanceChart } from "@/components/app/AgentPerformanceChart";
+import { AgentPerformanceTable } from "@/components/app/AgentPerformanceTable";
 import { QAScoreTable } from "@/components/app/QAScoreTable";
 import { BarChart, Users, Star, Phone, RotateCcw } from "lucide-react";
 import { Button } from "../ui/button";
@@ -96,7 +96,7 @@ export function QADashboard({ qaData }: QADashboardProps) {
             <CardTitle>Agent Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <AgentPerformanceChart data={qaData.agentPerformance} />
+            <AgentPerformanceTable data={qaData.agentPerformance} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
