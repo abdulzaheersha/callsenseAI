@@ -10,3 +10,16 @@ export type AnalysisResult = {
   fileName: string;
   analysisDate: string;
 };
+
+export type CallRecord = {
+  callId: string;
+  date: string;
+  agent: string;
+  department: string;
+  answered: 'Y' | 'N';
+  resolved: 'Y' | 'N';
+  speedOfAnswer: number;
+  avgTalkDuration: string;
+  satisfactionRating: number;
+  qualityScore?: number;
+};

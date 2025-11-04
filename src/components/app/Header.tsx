@@ -1,4 +1,6 @@
 import { Logo } from "@/components/app/Logo";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   return (
@@ -10,6 +12,14 @@ export function Header() {
             CallSense AI
           </h1>
         </div>
+        <nav className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+                <Link href="/">Call Analysis</Link>
+            </Button>
+            <Button variant="ghost" asChild>
+                <Link href="/qa-score">QA Score</Link>
+            </Button>
+        </nav>
       </div>
     </header>
   );

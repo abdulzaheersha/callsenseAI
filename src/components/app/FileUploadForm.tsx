@@ -41,6 +41,14 @@ interface FileUploadFormProps {
 
 export function FileUploadForm({ action }: FileUploadFormProps) {
   const formRef = React.useRef<HTMLFormElement>(null);
+  const { pending } = useFormStatus();
+
+  React.useEffect(() => {
+    if(!pending) {
+      formRef.current?.reset();
+    }
+  },[pending])
+
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg animate-in fade-in-50 duration-500">
