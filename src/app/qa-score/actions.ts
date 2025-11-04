@@ -61,13 +61,15 @@ function parseCsv(csv: string): Omit<CallRecord, 'qualityScore'>[] {
         const num = parseInt(val, 10);
         return isNaN(num) ? 0 : num;
     };
+    
+    const answeredValue = values[columnMapping.answered] || 'N';
 
     return {
       callId: values[columnMapping.callId] || '',
       date: values[columnMapping.date] || '',
       agent: values[columnMapping.agent] || '',
       department: values[columnMapping.department] || '',
-      answered: (values[columnMapping.answered] as 'Y' | 'N') || 'N',
+      answered: answeredValue === 'Y' ? 'Y' : 'N',
       resolved: (values[columnMapping.resolved] as 'Y' | 'N') || 'N',
       speedOfAnswer: safeParseInt(values[columnMapping.speedOfAnswer]),
       avgTalkDuration: values[columnMapping.avgTalkDuration] || '',
