@@ -14,7 +14,7 @@ const initialState = {
 };
 
 export default function Home() {
-  const [state, formAction] = useActionState(analyzeCall, initialState);
+  const [state, formAction, isSubmitting] = useActionState(analyzeCall, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,10 +32,6 @@ export default function Home() {
     window.location.reload();
   };
 
-  // The form is always submitting when an action is running.
-  // We can get this from the form status. We'll add this to the form later.
-  // For now, let's assume isSubmitting is false and we will derive it from the form.
-  const isSubmitting = false;
   const showDashboard = state?.data && !isSubmitting;
   const showForm = !state?.data && !isSubmitting;
   const showLoading = isSubmitting;

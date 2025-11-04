@@ -1,133 +1,54 @@
+"use client";
+
+import { useActionState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { analyzeQaData } from "./actions";
 import { Header } from "@/components/app/Header";
-import { callData, calculateQualityScore } from "@/lib/call-data";
-import type { CallRecord } from "@/lib/types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { AgentPerformanceChart } from "@/components/app/AgentPerformanceChart";
-import { QAScoreTable } from "@/components/app/QAScoreTable";
-import { BarChart, Users, Star, Phone } from "lucide-react";
+import { QADataUploadForm } from "@/components/app/QADataUploadForm";
+import { QADashboard } from "@/components/app/QADashboard";
+import { Loader2 } from "lucide-react";
 
-export default async function QAScorePage() {
-  const processedData: CallRecord[] = callData.map((record) => ({
-    ...record,
-    qualityScore: calculateQualityScore(record),
-  }));
+const initialState = {
+  data: null,
+  error: null,
+};
 
-  const totalCalls = processedData.length;
-  const totalAnswered = processedData.filter((c) => c.answered === 'Y').length;
-  const totalResolved = processedData.filter((c) => c.resolved === 'Y').length;
-  
-  const averageSatisfaction =
-    processedData.reduce((acc, curr) => acc + curr.satisfactionRating, 0) /
-    totalCalls;
-  
-  const averageQualityScore =
-    processedData.reduce((acc, curr) => acc + curr.qualityScore!, 0) /
-    totalCalls;
+export default function QAScorePage() {
+  const [state, formAction, isSubmitting] = useActionState(analyzeQaData, initialState);
+  const { toast } = useToast();
 
-  const agents = [...new Set(processedData.map((c) => c.agent))];
-  const agentPerformance = agents.map((agent) => {
-    const agentCalls = processedData.filter((c) => c.agent === agent);
-    const avgScore =
-      agentCalls.reduce((acc, curr) => acc + curr.qualityScore!, 0) /
-      agentCalls.length;
-    return { agent, score: Math.round(avgScore) };
-  });
+  useEffect(() => {
+    if (state.error) {
+      toast({
+        variant: "destructive",
+        title: "Analysis Failed",
+        description: state.error,
+      });
+    }
+  }, [state.error, toast]);
+
+  const showDashboard = state?.data && !isSubmitting;
+  const showForm = !state?.data && !isSubmitting;
+  const showLoading = isSubmitting;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow  p-4 sm:p-6 lg:p-8 bg-muted/40">
-        <div className="w-full max-w-7xl mx-auto space-y-6">
-          <h2 className="text-3xl font-bold tracking-tight">
-            QA Score Dashboard
-          </h2>
+      <main className="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-7xl mx-auto">
+          {showLoading && (
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <h2 className="text-2xl font-semibold">Analyzing Data...</h2>
+              <p className="text-muted-foreground">
+                This might take a moment. Please wait.
+              </p>
+            </div>
+          )}
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Calls
-                </CardTitle>
-                <Phone className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalCalls}</div>
-                <p className="text-xs text-muted-foreground">
-                  {totalAnswered} answered, {totalResolved} resolved
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Avg. Satisfaction
-                </CardTitle>
-                <Star className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {averageSatisfaction.toFixed(2)} / 5
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Across all calls
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Avg. Quality Score
-                </CardTitle>
-                <BarChart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {averageQualityScore.toFixed(0)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Based on QA metric
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Agents
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{agents.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Currently active
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {showForm && <QADataUploadForm action={formAction} />}
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Agent Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AgentPerformanceChart data={agentPerformance} />
-              </CardContent>
-            </Card>
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Call Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <QAScoreTable data={processedData} />
-              </CardContent>
-            </Card>
-          </div>
+          {showDashboard && <QADashboard qaData={state.data} />}
         </div>
       </main>
     </div>
