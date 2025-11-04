@@ -62,7 +62,7 @@ function parseCsv(csv: string): Omit<CallRecord, 'qualityScore'>[] {
         return isNaN(num) ? 0 : num;
     };
     
-    const answeredValue = values[columnMapping.answered] || 'N';
+    const answeredValue = values[columnMapping.answered]?.toUpperCase() || 'N';
 
     return {
       callId: values[columnMapping.callId] || '',
