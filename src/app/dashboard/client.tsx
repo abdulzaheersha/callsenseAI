@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeCall } from "../actions";
 import { Header } from "@/components/app/Header";
@@ -15,7 +14,7 @@ const initialState = {
 };
 
 export function DashboardClient() {
-  const [state, formAction] = useFormState(analyzeCall, initialState);
+  const [state, formAction] = useActionState(analyzeCall, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

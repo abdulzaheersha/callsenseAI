@@ -1,13 +1,12 @@
 "use client";
 
-import { useFormState } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeCall } from "./actions";
 import { Header } from "@/components/app/Header";
 import { FileUploadForm } from "@/components/app/FileUploadForm";
 import { AnalysisDashboard } from "@/components/app/AnalysisDashboard";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useActionState } from "react";
 
 const initialState = {
   data: null,
@@ -15,7 +14,7 @@ const initialState = {
 };
 
 export default function Home() {
-  const [state, formAction] = useFormState(analyzeCall, initialState);
+  const [state, formAction] = useActionState(analyzeCall, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
