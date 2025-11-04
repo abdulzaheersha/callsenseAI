@@ -16,7 +16,8 @@ interface QAScoreTableProps {
 }
 
 export function QAScoreTable({ data }: QAScoreTableProps) {
-  const getScoreColor = (score: number) => {
+  const getScoreColor = (score: number | null | undefined) => {
+    if (score === null || score === undefined || isNaN(score)) return "bg-gray-100 text-gray-800";
     if (score >= 80) return "bg-green-100 text-green-800";
     if (score >= 50) return "bg-yellow-100 text-yellow-800";
     return "bg-red-100 text-red-800";
@@ -49,8 +50,8 @@ export function QAScoreTable({ data }: QAScoreTableProps) {
               </TableCell>
               <TableCell className="text-center">{call.satisfactionRating}/5</TableCell>
               <TableCell className="text-center font-bold">
-                 <Badge className={getScoreColor(call.qualityScore!)}>
-                    {call.qualityScore}
+                 <Badge className={getScoreColor(call.qualityScore)}>
+                    {call.qualityScore && !isNaN(call.qualityScore) ? call.qualityScore : 'N/A'}
                  </Badge>
               </TableCell>
             </TableRow>
