@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { QAData } from "@/lib/types";
@@ -20,6 +21,10 @@ export function QADashboard({ qaData }: QADashboardProps) {
   const handleReset = () => {
     window.location.reload();
   };
+
+  // Safe numerical checks to prevent NaN display
+  const safeAvgSat = isNaN(qaData.averageSatisfaction) ? 0 : qaData.averageSatisfaction;
+  const safeAvgScore = isNaN(qaData.averageQualityScore) ? 0 : qaData.averageQualityScore;
 
   return (
     <div className="w-full mx-auto space-y-6 animate-in fade-in-50 duration-500">
@@ -59,7 +64,7 @@ export function QADashboard({ qaData }: QADashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(qaData.averageSatisfaction || 0).toFixed(2)} / 5
+              {safeAvgSat.toFixed(2)} / 5
             </div>
             <p className="text-xs text-muted-foreground">Across all calls</p>
           </CardContent>
@@ -73,7 +78,7 @@ export function QADashboard({ qaData }: QADashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(qaData.averageQualityScore || 0).toFixed(0)}
+              {safeAvgScore.toFixed(0)}
             </div>
             <p className="text-xs text-muted-foreground">Based on QA metric</p>
           </CardContent>
